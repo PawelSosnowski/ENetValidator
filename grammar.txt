@@ -1,0 +1,63 @@
+BNF Grammar for electrical networks (.net files).
+
+program -> BEGIN commands END
+
+commands -> command NEXT_LINE commands
+         -> EPSILON
+
+command -> element_declaration
+        -> element_connections
+
+element_declaration -> ID EQ net_element
+
+element_connections -> vec_id CONNECTOR element_connection
+                    -> EPSILON
+element_connection -> CONNECTOR vec_id element_connection
+                   -> EPSILON
+
+vec_id -> ID LB INT RB
+       -> GND
+
+net_element -> type parameters
+parameters -> LP parameter RP
+
+parameter -> val another_parameter
+          -> ID EQ val another_parameter
+          -> EPSILON
+
+another_parameter -> COMMA val another_parameter
+                  -> COMMA ID EQ val another_parameter
+                  -> EPSILON
+
+type -> 'voltagesource'
+     -> 'voltageprobe'
+     -> 'currentsource'
+     -> 'currentprobe'
+     -> 'resistor'
+     -> 'capacitor'
+     -> 'inductor'
+     -> 'diode'
+
+val -> num
+    -> ID
+
+num -> INT
+    -> FLOAT
+    -> SCIENTIFIC
+
+BEGIN -> 'begin'
+END -> 'end'
+GND -> 'gnd'
+ID -> '^[^\d\W]\w*\Z'
+INT -> '[0-9]+'
+FLOAT -> '[+-]?([0-9]*[.])?[0-9]+'
+SCIENTIFIC -> '/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?/'
+COMMA -> ','
+EQ -> '='
+NEXT_LINE -> '\n'
+CONNECTOR -> '--'
+EPSILON -> eps
+LP -> '('
+RP -> ')'
+LB -> '['
+RB -> ']'
