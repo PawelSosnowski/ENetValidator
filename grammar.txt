@@ -10,9 +10,10 @@ command -> element_declaration
 
 element_declaration -> ID EQ net_element
 
-element_connections -> vec_id CONNECTOR element_connection
+element_connections -> vec_id CONNECTOR vec_id element_connection
                     -> EPSILON
 element_connection -> CONNECTOR vec_id element_connection
+                   -> NEXT_LINE element_connections
                    -> EPSILON
 
 vec_id -> ID LB INT RB
@@ -21,12 +22,11 @@ vec_id -> ID LB INT RB
 net_element -> type parameters
 parameters -> LP parameter RP
 
-parameter -> val another_parameter
-          -> ID EQ val another_parameter
+parameter -> ID EQ num another_parameter
+          -> num
           -> EPSILON
 
-another_parameter -> COMMA val another_parameter
-                  -> COMMA ID EQ val another_parameter
+another_parameter -> COMMA ID EQ num another_parameter
                   -> EPSILON
 
 type -> 'voltagesource'
@@ -44,6 +44,8 @@ val -> num
 num -> INT
     -> FLOAT
     -> SCIENTIFIC
+
+
 
 BEGIN -> 'begin'
 END -> 'end'

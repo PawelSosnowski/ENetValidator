@@ -7,10 +7,10 @@ KEYWORDS = {'begin', 'end', 'gnd', 'voltagesource',
             'currentprobe', 'resistor', 
             'capacitor', 'inductor', 'diode', 'EOF'}
 TOKEN_REG = [
-    ('INT', r'[0-9]+'),
-    ('SCIENTIFIC', r'-?([1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?'), 
-    ('FLOAT', r'[+-]?([0-9]*[.])?[0-9]+'), 
+    ('SCIENTIFIC', r'-?([1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)'), 
+    ('FLOAT', r'\d+(\.\d*)'),
     ('ID', r'[A-Za-z_]+[0-9]*'), 
+    ('INT', r'[0-9]+'),
     ('EQ', r'='),
     ('NEXT_LINE', r'\n'),
     ('CONNECTOR', r'--'), 
@@ -56,6 +56,7 @@ class Scanner:
         while match:
             type = match.lastgroup
             if type == 'NEXT_LINE':
+                tokens.append(Token(type, '\n', line, match.start()-line_start))
                 line_start = current_position
                 line += 1
             elif type != 'SKIP':
