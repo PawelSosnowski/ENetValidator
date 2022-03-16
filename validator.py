@@ -1,4 +1,4 @@
-from scanner import Scanner
+from scanner import Scanner, Token
 from argparse import ArgumentParser
 from typing import List
 
@@ -19,38 +19,34 @@ class Validator:
         self.current_token  = lambda : self.tokens[self.iter]
         self.line_between = False
 
-
-    def __error(self, message):
-        raise RuntimeError(f'Parse error: {message}')
-        
+    def __error(self, message: str, token: Token= None):
+        if token:
+            raise RuntimeError(f'Parse error: {message}, in line: {token.line}, column: {token.column}')
+        else:
+            raise RuntimeError(f'Parse error: {message}')
 
     def validate(self) -> None:
         if self.current_token().type == 'begin':
             self.__commands()
             if self.current_token().type != 'end':
-                token = self.current_token()
-                self.__error(f'Unexpected token in line: {token.line}, column: {token.column}')
+                self.__error('Unexpected token', self.current_token())
             self.iter += 1
             if self.current_token().type == 'NEXT_LINE':
                 self.iter += 1
             if self.current_token().type != 'EOF':
-                token = self.current_token()
-                self.__error(f'Unexpected token in line: {token.line}, column: {token.column}')
+                self.__error('Unexpected token', self.current_token())
             
-    
     def __commands(self):
         self.iter += 1
         token = self.current_token()
+
         while token.type == 'NEXT_LINE':
             self.iter += 1
             token = self.current_token()
 
         if token.type == 'ID' or token.type == 'gnd':
-            
             self.__command()
-
             self.__commands()
-
 
     def __command(self):
         token = self.current_token()
@@ -70,7 +66,6 @@ class Validator:
         else:
             self.__error('Epsilon not allowed')
 
-
     def __element_declaration(self):
         if self.current_token().type == 'EQ':
             self.__net_element()
@@ -85,11 +80,10 @@ class Validator:
             else:
                 self.line_between = True
 
-        token = self.current_token()
-        if token.type == 'ID' or token.type == 'gnd':
+        if self.current_token().type == 'ID' or self.current_token().type == 'gnd':
             self.__vec_id()
             if self.current_token().type != 'CONNECTOR':
-                self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+                self.__error('Unexpected token', self.current_token())
             else:
                 self.iter += 1
                 self.__vec_id()
@@ -121,10 +115,7 @@ class Validator:
                     if self.current_token().type == 'RB':
                         self.iter += 1
                         return
-        self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")                
-        
-            
-
+        self.__error('Unexpected token', self.current_token())                
 
     def __net_element(self):
         self.iter += 1
@@ -139,21 +130,19 @@ class Validator:
             'capacitor', 'inductor', 'diode']:
             pass
         else:
-            self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+            self.__error('Unexpected token', self.current_token())
 
     
     def __parameters(self):
         if self.current_token().type != 'LP':
-            self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+            self.__error('Unexpected token', self.current_token())
         self.iter += 1
         self.__parameter()
         if self.current_token().type != 'RP':
-            self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+            self.__error('Unexpected token', self.current_token())
         
         if self.current_token().type == 'NEXT_LINE':
             self.iter += 1
-
-
 
     def __parameter(self):
         if self.current_token().type in ['INT', 'FLOAT', 'SCIENTIFIC']:
@@ -165,9 +154,9 @@ class Validator:
                 if self.current_token().type in ['INT', 'FLOAT', 'SCIENTIFIC']:
                     self.iter += 1
                 else:
-                    self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+                    self.__error('Unexpected token', self.current_token())
             else:
-                self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+                self.__error('Unexpected token', self.current_token())
             
             self.__another_parameter()
         else:
@@ -182,12 +171,9 @@ class Validator:
                     self.iter += 1
                     if self.current_token().type in ['INT', 'FLOAT', 'SCIENTIFIC']:
                         self.iter += 1
-                    else:
-                        self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
-                else:
-                    self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+                        return
             else:
-                self.__error(f"Unexpected token in line: {self.current_token().line}, column: {self.current_token().column} ")
+                self.__error('Unexpected token', self.current_token())
         else:
             pass
 
